@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Custom Pool Cue Builder · 3D Configurator</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome (icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* reset & base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f4f6fa;
+            color: #1e1f2a;
+            line-height: 1.5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* app container */
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* header */
+        .header {
+            background: #ffffff;
+            padding: 0.9rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            border-bottom: 1px solid #e9ebf0;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.4rem;
+            letter-spacing: -0.02em;
+            color: #0b1b2e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logo i {
+            color: #2b6ed9;
+            font-size: 1.7rem;
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 1.8rem;
+            color: #4e5b6b;
+            font-size: 1.2rem;
+        }
+
+        .nav-icons i {
+            cursor: default;
+        }
+
+        .cart-badge {
+            position: relative;
+        }
+
+        .cart-badge span {
+            position: absolute;
+            top: -8px;
+            right: -12px;
+            background: #2b6ed9;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 20px;
+            line-height: 1.2;
+        }
+
+        /* main layout */
+        .main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* viewer panel */
+        .viewer {
+            flex: 1.2;
+            background: #f0f2f7;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            min-width: 0;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            border-radius: 28px;
+            overflow: hidden;
+            background: radial-gradient(circle at 20% 30%, #ffffff, #d9e0ed);
+            box-shadow: 0 20px 35px -10px rgba(0, 20, 50, 0.15);
+            cursor: grab;
+            transition: box-shadow 0.2s;
+        }
+
+        #canvas-container:active {
+            cursor: grabbing;
+        }
+
+        .viewer-label {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 1.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1e2a44;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            pointer-events: none;
+        }
+
+        .viewer-label i {
+            margin-right: 6px;
+            color: #2b6ed9;
+        }
+
+        /* config panel */
+        .config-panel {
+            width: 460px;
+            background: #ffffff;
+            border-left: 1px solid #e9ebf0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 1.8rem 1.8rem 1.8rem 1.8rem;
+            flex-shrink: 0;
+            gap: 1.8rem;
+        }
+
+        .config-panel h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #0b1b2e;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .config-panel h2 small {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: #7b8799;
+            background: #f4f6fa;
+            padding: 0.25rem 0.9rem;
+            border-radius: 30px;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            color: #4e5b6b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .option-label i {
+            color: #2b6ed9;
+            font-size: 0.9rem;
+            width: 18px;
+        }
+
+        .color-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: default;
+            border: 2px solid transparent;
+            transition: all 0.15s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .color-swatch.active {
+            border-color: #1e1f2a;
+            transform: scale(1.05);
+            box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #2b6ed9;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .btn-option {
+            background: #f4f6fa;
+            border: 1px solid #dce0e8;
+            border-radius: 40px;
+            padding: 0.5rem 1.1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #2e3a4b;
+            cursor: default;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-option.active {
+            background: #1e1f2a;
+            border-color: #1e1f2a;
+            color: white;
+        }
+
+        .btn-option i {
+            font-size: 0.75rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #f4f6fa;
+            border-radius: 60px;
+            padding: 0.3rem 0.3rem 0.3rem 1.2rem;
+            border: 1px solid #dce0e8;
+        }
+
+        .input-group i {
+            color: #7b8799;
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            border: none;
+            background: transparent;
+            padding: 0.6rem 0.2rem;
+            font-size: 0.9rem;
+            width: 100%;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .input-group input::placeholder {
+            color: #a4afbf;
+            font-size: 0.85rem;
+        }
+
+        .upload-btn {
+            background: white;
+            border: 1px solid #dce0e8;
+            border-radius: 60px;
+            padding: 0.6rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1e1f2a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: default;
+            white-space: nowrap;
+        }
+
+        .upload-btn i {
+            color: #2b6ed9;
+        }
+
+        .price-block {
+            margin-top: auto;
+            padding-top: 1.2rem;
+            border-top: 1px solid #e9ebf0;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            color: #4e5b6b;
+        }
+
+        .price-row.total {
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: #0b1b2e;
+            margin-top: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .checkout-btn {
+            background: #2b6ed9;
+            border: none;
+            border-radius: 60px;
+            padding: 1rem;
+            width: 100%;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: default;
+            transition: background 0.15s;
+            box-shadow: 0 8px 18px -6px rgba(43, 110, 217, 0.4);
+        }
+
+        .checkout-btn i {
+            font-size: 1rem;
+        }
+
+        .trust-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1.2rem;
+            margin-top: 1rem;
+            color: #8b97a8;
+            font-size: 1.2rem;
+        }
+
+        /* responsive */
+        @media (max-width: 1000px) {
+            .config-panel {
+                width: 380px;
+                padding: 1.4rem;
+            }
+        }
+
+        @media (max-width: 800px) {
+            .main {
+                flex-direction: column;
+            }
+
+            .viewer {
+                flex: 0.9;
+                min-height: 300px;
+            }
+
+            .config-panel {
+                width: 100%;
+                flex: 1;
+                border-left: none;
+                border-top: 1px solid #e9ebf0;
+                padding: 1.2rem;
+                overflow-y: auto;
+            }
+
+            .header {
+                padding: 0.8rem 1.2rem;
+            }
+
+            .logo {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-cue"></i>
+                <span>POOLCRAFT<span style="font-weight: 400; color: #7b8799;">3D</span></span>
+            </div>
+            <div class="nav-icons">
+                <i class="fas fa-search"></i>
+                <i class="far fa-user"></i>
+                <div class="cart-badge">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>1</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main builder area -->
+        <div class="main">
+            <!-- 3D viewer -->
+            <div class="viewer">
+                <div id="canvas-container"></div>
+                <div class="viewer-label">
+                    <i class="fas fa-rotate"></i> Drag to rotate · Scroll to zoom
+                </div>
+            </div>
+
+            <!-- config panel -->
+            <div class="config-panel">
+                <h2>
+                    Custom cue
+                    <small>live 3D</small>
+                </h2>
+
+                <!-- color options -->
+                <div class="option-group">
+                    <div class="option-label"><i class="fas fa-palette"></i> Butt color</div>
+                    <div class="color-options">
+                        <div class="color-swatch active" style="background: #3d2b1f;" data-color="#3d2b1f"></div>
+                        <div class="color-swatch" style="background: #7a2e2e;" data-color="#7a2e2e"></div>
+                        <div class="color-swatch" style="background: #2b4f6e;" data-color="#2b4f6e"></div>
+                        <div class="color-swatch" style="background: #2f5e3a;" data-color="#2f5e3a"></div>
+                        <div class="color-swatch" style="background: #5e4b2b;" data-color="#5e4b2b"></div>
+                    </div>
+                </div>
+
+                <!-- pattern -->
+                <div class="option-group">
+                    <div class="option-label"><i class="fas fa-border-all"></i> Pattern</div>
+                    <div class="btn-group">
+                        <div class="btn-option active" data-pattern="solid"><i class="fas fa-circle"></i> Solid</div>
+                        <div class="btn-option" data-pattern="striped"><i class="fas fa-bars"></i> Striped</div>
+                        <div class="btn-option" data-pattern="marble"><i class="fas fa-gem"></i> Marble</div>
+                    </div>
+                </div>
+
+                <!-- wrap style -->
+                <div class="option-group">
+                    <div class="option-label"><i class="fas fa-tape"></i> Wrap style</div>
+                    <div class="btn-group">
+                        <div class="btn-option active" data-wrap="leather"><i class="fas fa-hand-rock"></i> Leather
+                        </div>
+                        <div class="btn-option" data-wrap="linen"><i class="fas fa-leaf"></i> Linen</div>
+                        <div class="btn-option" data-wrap="none"><i class="fas fa-ban"></i> None</div>
+                    </div>
+                </div>
+
+                <!-- length & weight -->
+                <div class="option-group">
+                    <div class="option-label"><i class="fas fa-ruler"></i> Length</div>
+                    <div class="btn-group">
+                        <div class="btn-option active" data-length="58">58"</div>
+                        <div class="btn-option" data-length="59">59"</div>
+                        <div class="btn-option" data-length="60">60"</div>
+                    </div>
+                </div>
+
+                <div class="option-group">
+                    <div class="option-label"><i class="fas fa-weight-hanging"></i> Weight</div>
+                    <div class="btn-group">
+                        <div class="btn-option active" data-weight="18">18 oz</div>
+                        <div class="btn-option" data-weight="19">19 oz</div>
+                        <div class="btn-option" data-weight="20">20 oz</div>
+                    </div>
+                </div>
+
+                <!-- tip type -->
+                <div class="option-group">
+                    <div class="option-label"><i class="fas fa-pen"></i> Tip type</div>
+                    <div class="btn-group">
+                        <div class="btn-option active" data-tip="leather"><i class="fas fa-dot-circle"></i> Leather
+                        </div>
+                        <div class="btn-option" data-tip="phenolic"><i class="fas fa-circle"></i> Phenolic</div>
+                        <div class="btn-option" data-tip="synthetic"><i class="fas fa-cog"></i> Synthetic</div>
+                    </div>
+                </div>
+
+                <!-- personalisation -->
+                <div class="option-group">
+                    <div class="option-label"><i class="fas fa-pencil-alt"></i> Name / text</div>
+                    <div class="input-group">
+                        <i class="fas fa-font"></i>
+                        <input type="text" id="engravingInput" placeholder="e.g. J. Smith" maxlength="20"
+                            value="J. Smith">
+                    </div>
+                    <div class="upload-btn">
+                        <i class="fas fa-upload"></i> Upload graphic
+                    </div>
+                </div>
+
+                <!-- pricing & checkout -->
+                <div class="price-block">
+                    <div class="price-row">
+                        <span>Base cue</span>
+                        <span>$249.00</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Custom options</span>
+                        <span>$85.00</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>Total</span>
+                        <span>$334.00</span>
+                    </div>
+                    <div class="checkout-btn">
+                        <i class="fas fa-lock"></i> Proceed to checkout
+                    </div>
+                    <div class="trust-icons">
+                        <i class="fab fa-cc-stripe"></i>
+                        <i class="fab fa-cc-paypal"></i>
+                        <i class="fab fa-cc-apple-pay"></i>
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js and OrbitControls from CDN -->
+    <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+    }
+  }
+</script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- setup scene ---
+        const container = document.getElementById('canvas-container');
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf0f2f7); // matches CSS
+
+        const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        camera.position.set(2.5, 1.8, 5);
+        camera.lookAt(0, 0.5, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(width, height);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // controls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = false;
+        controls.enableZoom = true;
+        controls.zoomSpeed = 1.0;
+        controls.rotateSpeed = 1.0;
+        controls.target.set(0, 0.5, 0);
+        controls.update();
+
+        // --- lighting ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        mainLight.position.set(3, 5, 4);
+        mainLight.castShadow = true;
+        mainLight.receiveShadow = true;
+        mainLight.shadow.mapSize.width = 1024;
+        mainLight.shadow.mapSize.height = 1024;
+        scene.add(mainLight);
+
+        const fillLight = new THREE.DirectionalLight(0xe0eaff, 0.5);
+        fillLight.position.set(-3, 2, 2);
+        scene.add(fillLight);
+
+        const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        backLight.position.set(-1, 2, -5);
+        scene.add(backLight);
+
+        // --- create the cue ---
+        // We'll build a stylised pool cue group: butt + shaft + tip
+        const cueGroup = new THREE.Group();
+
+        // materials (will be updated via UI)
+        const buttMaterial = new THREE.MeshStandardMaterial({
+            color: 0x3d2b1f,
+            roughness: 0.3,
+            metalness: 0.2,
+        });
+
+        const shaftMaterial = new THREE.MeshStandardMaterial({
+            color: 0xd9c8a8,
+            roughness: 0.5,
+            metalness: 0.05,
+        });
+
+        const wrapMaterial = new THREE.MeshStandardMaterial({
+            color: 0x4a2e1e,
+            roughness: 0.9,
+            metalness: 0.0,
+        });
+
+        const tipMaterial = new THREE.MeshStandardMaterial({
+            color: 0x3a5a7a,
+            roughness: 0.6,
+            metalness: 0.1,
+        });
+
+        // butt (thicker part, lower)
+        const buttGeo = new THREE.CylinderGeometry(0.22, 0.25, 2.4, 32);
+        const buttMesh = new THREE.Mesh(buttGeo, buttMaterial);
+        buttMesh.castShadow = true;
+        buttMesh.receiveShadow = true;
+        buttMesh.position.y = 1.2; // so base at 0
+        cueGroup.add(buttMesh);
+
+        // shaft (thinner, upper part)
+        const shaftGeo = new THREE.CylinderGeometry(0.14, 0.18, 2.8, 32);
+        const shaftMesh = new THREE.Mesh(shaftGeo, shaftMaterial);
+        shaftMesh.castShadow = true;
+        shaftMesh.receiveShadow = true;
+        shaftMesh.position.y = 2.4 + 1.4; // 2.4 (butt height) + half shaft
+        cueGroup.add(shaftMesh);
+
+        // wrap (decorative ring around butt)
+        const wrapGeo = new THREE.TorusGeometry(0.24, 0.06, 16, 40);
+        const wrapMesh = new THREE.Mesh(wrapGeo, wrapMaterial);
+        wrapMesh.castShadow = true;
+        wrapMesh.receiveShadow = true;
+        wrapMesh.rotation.x = Math.PI / 2;
+        wrapMesh.position.y = 1.8;
+        cueGroup.add(wrapMesh);
+
+        // tip
+        const tipGeo = new THREE.CylinderGeometry(0.13, 0.13, 0.15, 16);
+        const tipMesh = new THREE.Mesh(tipGeo, tipMaterial);
+        tipMesh.castShadow = true;
+        tipMesh.receiveShadow = true;
+        tipMesh.position.y = 2.4 + 2.8 + 0.075;
+        cueGroup.add(tipMesh);
+
+        // add subtle joint rings
+        const ringMat = new THREE.MeshStandardMaterial({ color: 0xbbaa99, roughness: 0.2, metalness: 0.7 });
+        const ring1 = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.025, 16, 40), ringMat);
+        ring1.rotation.x = Math.PI / 2;
+        ring1.position.y = 0.3;
+        cueGroup.add(ring1);
+
+        const ring2 = ring1.clone();
+        ring2.position.y = 2.3;
+        cueGroup.add(ring2);
+
+        const ring3 = ring1.clone();
+        ring3.position.y = 4.9;
+        cueGroup.add(ring3);
+
+        // center the group roughly around its middle
+        cueGroup.position.y = -1.8; // shift so it's centered around origin-ish
+        scene.add(cueGroup);
+
+        // floor reflection / subtle ground
+        const groundGeo = new THREE.CircleGeometry(8, 32);
+        const groundMat = new THREE.MeshStandardMaterial({ color: 0xd0d8e5, roughness: 0.9, metalness: 0.1, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -1.0;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // --- update UI interactions (simulated for mockup) ---
+        // color swatches
+        document.querySelectorAll('.color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', (e) => {
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                swatch.classList.add('active');
+                const color = swatch.dataset.color;
+                if (color) {
+                    buttMaterial.color.set(color);
+                    // also tint wrap slightly
+                    wrapMaterial.color.set(color);
+                    wrapMaterial.color.multiplyScalar(0.8);
+                }
+            });
+        });
+
+        // pattern buttons (just active state, no visual change in mockup)
+        document.querySelectorAll('.btn-option[data-pattern]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.btn-option[data-pattern]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // wrap style
+        document.querySelectorAll('.btn-option[data-wrap]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.btn-option[data-wrap]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const wrap = btn.dataset.wrap;
+                if (wrap === 'leather') {
+                    wrapMaterial.color.set(0x4a2e1e);
+                    wrapMesh.visible = true;
+                } else if (wrap === 'linen') {
+                    wrapMaterial.color.set(0x8b7a6b);
+                    wrapMesh.visible = true;
+                } else if (wrap === 'none') {
+                    wrapMesh.visible = false;
+                }
+            });
+        });
+
+        // length (just active)
+        document.querySelectorAll('.btn-option[data-length]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.btn-option[data-length]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // weight
+        document.querySelectorAll('.btn-option[data-weight]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.btn-option[data-weight]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // tip type
+        document.querySelectorAll('.btn-option[data-tip]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.btn-option[data-tip]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const tip = btn.dataset.tip;
+                if (tip === 'leather') tipMaterial.color.set(0x3a5a7a);
+                else if (tip === 'phenolic') tipMaterial.color.set(0xac3e3e);
+                else if (tip === 'synthetic') tipMaterial.color.set(0x4f6b4f);
+            });
+        });
+
+        // engraving input (no 3D text for simplicity, but we update a dummy)
+        const engravingInput = document.getElementById('engravingInput');
+        engravingInput.addEventListener('input', (e) => {
+            // in a full version, you'd update a 3D text mesh. Mockup just logs.
+            // console.log('Engraving:', e.target.value);
+        });
+
+        // handle resize
+        function onResize() {
+            const newWidth = container.clientWidth;
+            const newHeight = container.clientHeight;
+            renderer.setSize(newWidth, newHeight);
+            camera.aspect = newWidth / newHeight;
+            camera.updateProjectionMatrix();
+        }
+
+        window.addEventListener('resize', onResize);
+        // also observe container size (e.g. if panel opens)
+        const resizeObserver = new ResizeObserver(() => { onResize(); });
+        resizeObserver.observe(container);
+
+        // --- animation loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // initial size adjust
+        setTimeout(() => onResize(), 50);
+    </script>
+</body>
+
+</html>
